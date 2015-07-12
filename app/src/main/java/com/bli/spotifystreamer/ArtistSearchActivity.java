@@ -3,6 +3,7 @@ package com.bli.spotifystreamer;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Parcel;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,27 +23,34 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Artists;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
+import kaaes.spotify.webapi.android.models.Pager;
 
 public class ArtistSearchActivity extends AppCompatActivity implements AsyncResponse{
 
+    private static final String KEY_PARCELABLE_ARTIST_LIST = "artists";
     private EditText searchArtistEditText;
-    private Button searchArtistBtn;
     private ListView artistsListView;
 
-    private String [] artists;
-
+    private ArrayList<ParcelableArtist> artists;
+    public ArtistsPager artistsPager;
     public ArrayAdapter<Artist> artistsAdapter;
+    public ParcelableArtistArrayAdapter parcelableArtistsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist_search);
-        //searchArtistBtn = (Button)findViewById(R.id.searchArtistBtn);
+
         searchArtistEditText = (EditText)findViewById(R.id.searchArtistText);
         artistsListView = (ListView)findViewById(R.id.artistsListView);
+
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         searchArtistEditText.setOnEditorActionListener(new TextView.OnEditorActionListener(){
             @Override
@@ -54,17 +62,66 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
                 return false;
             }
         });
+
+        if(savedInstanceState != null){
+            artists = savedInstanceState.getParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST);
+            Log.d("ARTIST SEARCH ACTIVITY", artists.toString());
+
+            parcelableArtistsAdapter = new ParcelableArtistArrayAdapter(getApplicationContext(), R.id.artistsListView, artists);
+            artistsListView.setAdapter(parcelableArtistsAdapter);
+
+            artistsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Log.d("ArtistList Activity","Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
+
+                    //Start the top tracks with an intent
+                    Intent i = new Intent(getApplicationContext(), TopTracksActivity.class);
+                    i.putExtra("artistId", artists.get(position).artistId);
+                    i.putExtra("artistName", artists.get(position).artistName);
+                    startActivity(i);
+
+                }
+            });
+
+            artistsListView.setSelectionFromTop(savedInstanceState.getInt("listViewPosition"), savedInstanceState.getInt("listViewPositioniOffset"));
+
+        }
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST, artists);
+
+        int position = artistsListView.getFirstVisiblePosition();
+        outState.putInt("listViewPosition", position);
+
+        View v = artistsListView.getChildAt(0);
+        int offset = (v == null) ? 0 : (v.getTop() - artistsListView.getPaddingTop());
+        outState.putInt("listViewPositionOffset", offset);
+
+        super.onSaveInstanceState(outState);
+    }
+
     public void beginSearch(View view){
         GetArtistsTask getArtistsTask = new GetArtistsTask();
         getArtistsTask.delegate = this;
         getArtistsTask.execute(searchArtistEditText.getText().toString());
+
+        // Remove the focus from the edit text and hide the keyboard
+        InputMethodManager in = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        in.hideSoftInputFromWindow(searchArtistEditText.getWindowToken(), 0);
+        searchArtistEditText.clearFocus();
+        artistsListView.requestFocus();
+
+
     }
 
     @Override
     public void processFinish(final ArtistsPager artistsPager) {
 
         Log.d("Artist Search", "Begin onPostExecute delegate");
+        artists = new ArrayList<>();
 
         int artistListSize = artistsPager.artists.items.size();
 
@@ -91,6 +148,16 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
             Toast toast = Toast.makeText(this, "Artist not found. Please try another one.",Toast.LENGTH_SHORT);
             toast.show();
         }
+
+        //Save the artists into the parcelableArtist list
+        for(Artist artist:artistsPager.artists.items){
+            String thumbnailUrl = "";
+            if(artist.images.size() > 0 ){
+                thumbnailUrl = artist.images.get(0).url;
+            }
+            ParcelableArtist pArtist = new ParcelableArtist(artist.name,thumbnailUrl, artist.id);
+            artists.add(pArtist);
+        }
     }
 
     private class GetArtistsTask extends AsyncTask<String, Void, Void>{
@@ -111,7 +178,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
         @Override
         protected void onPostExecute(Void v){
             Log.d("Artist Search", "Spotify query completed");
-            delegate.processFinish(artistsPager);
+            delegate.processFinish(this.artistsPager);
         }
     }
 }
