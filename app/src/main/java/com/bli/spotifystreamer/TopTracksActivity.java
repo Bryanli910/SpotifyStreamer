@@ -35,6 +35,7 @@ public class TopTracksActivity extends AppCompatActivity implements TracksAsyncR
     public Bundle savedInstanceState;
     public String artistName;
     ArrayList<ParcelableTrack> parcelableTracks;
+    public ParcelableTracksArrayAdapter parcelableTracksArrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,20 +48,20 @@ public class TopTracksActivity extends AppCompatActivity implements TracksAsyncR
 
         if(savedInstanceState != null){
             ActionBar actionBar = getSupportActionBar();
-            String artistName = savedInstanceState.getString("artistName");
+            artistName = savedInstanceState.getString("artistName");
             actionBar.setSubtitle(artistName);
 
-            parcelableTracks = savedInstanceState.getParcelable("tracks");
+            parcelableTracks = savedInstanceState.getParcelableArrayList("tracks");
 
-            Toast toast = Toast.makeText(this, parcelableTracks.get(0).toString(), Toast.LENGTH_SHORT);
-            toast.show();
+            Log.d("Parcelable Tracks: ", parcelableTracks.toString());
 
-            List<Track> tracksList = new ArrayList<>();
+            if(parcelableTracks.size() > 0 ){
+                parcelableTracksArrayAdapter = new ParcelableTracksArrayAdapter(getApplicationContext(),R.id.tracksList, parcelableTracks);
+                tracksListView.setAdapter(parcelableTracksArrayAdapter);
+            }
 
-            Tracks tracks = new Tracks();
-            tracks.tracks = tracksList;
+            tracksListView.setSelectionFromTop(savedInstanceState.getInt("listViewPosition"), savedInstanceState.getInt("listViewPositioniOffset"));
 
-            processFinish(tracks);
         }
         else if(artistInfo != null){
 
@@ -79,6 +80,13 @@ public class TopTracksActivity extends AppCompatActivity implements TracksAsyncR
     protected void onSaveInstanceState(Bundle outState){
         outState.putParcelableArrayList("tracks", parcelableTracks);
         outState.putString("artistName", artistName);
+
+        int position = tracksListView.getFirstVisiblePosition();
+        outState.putInt("listViewPosition", position);
+        View v = tracksListView.getChildAt(0);
+        int offset = (v == null) ? 0 : (v.getTop() - tracksListView.getPaddingTop());
+        outState.putInt("listViewPositionOffset", offset);
+
         super.onSaveInstanceState(outState);
     }
 
@@ -120,7 +128,6 @@ public class TopTracksActivity extends AppCompatActivity implements TracksAsyncR
         @Override
         protected Void doInBackground(String... artist) {
             MusicService musicService = new MusicService();
-            Log.d("TESTESTESTESTSTEST",artist[0]);
             this.tracks = musicService.getTopTracks(artist[0]);
             return null;
         }

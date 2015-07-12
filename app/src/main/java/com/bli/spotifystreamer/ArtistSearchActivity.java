@@ -91,29 +91,36 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST, artists);
+        if(artists == null) {
+            outState.putParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST, artists);
 
-        int position = artistsListView.getFirstVisiblePosition();
-        outState.putInt("listViewPosition", position);
+            int position = artistsListView.getFirstVisiblePosition();
+            outState.putInt("listViewPosition", position);
 
-        View v = artistsListView.getChildAt(0);
-        int offset = (v == null) ? 0 : (v.getTop() - artistsListView.getPaddingTop());
-        outState.putInt("listViewPositionOffset", offset);
-
+            View v = artistsListView.getChildAt(0);
+            int offset = (v == null) ? 0 : (v.getTop() - artistsListView.getPaddingTop());
+            outState.putInt("listViewPositionOffset", offset);
+        }
         super.onSaveInstanceState(outState);
     }
 
     public void beginSearch(View view){
-        GetArtistsTask getArtistsTask = new GetArtistsTask();
-        getArtistsTask.delegate = this;
-        getArtistsTask.execute(searchArtistEditText.getText().toString());
+        String searchText = searchArtistEditText.getText().toString();
+        if(searchText == "" || searchText.isEmpty() || searchText.equals("")){
+            Toast toast = Toast.makeText(this, "Please enter an artist",Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        else {
+            GetArtistsTask getArtistsTask = new GetArtistsTask();
+            getArtistsTask.delegate = this;
+            getArtistsTask.execute(searchText);
 
-        // Remove the focus from the edit text and hide the keyboard
-        InputMethodManager in = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        in.hideSoftInputFromWindow(searchArtistEditText.getWindowToken(), 0);
-        searchArtistEditText.clearFocus();
-        artistsListView.requestFocus();
-
+            // Remove the focus from the edit text and hide the keyboard
+            InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            in.hideSoftInputFromWindow(searchArtistEditText.getWindowToken(), 0);
+            searchArtistEditText.clearFocus();
+            artistsListView.requestFocus();
+        }
 
     }
 
