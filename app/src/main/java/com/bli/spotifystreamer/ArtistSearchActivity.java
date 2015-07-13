@@ -52,10 +52,10 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-        searchArtistEditText.setOnEditorActionListener(new TextView.OnEditorActionListener(){
+        searchArtistEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH || event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+                if (actionId == EditorInfo.IME_ACTION_SEARCH || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                     beginSearch(v);
                     return true;
                 }
@@ -65,33 +65,34 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
 
         if(savedInstanceState != null){
             artists = savedInstanceState.getParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST);
-            Log.d("ARTIST SEARCH ACTIVITY", artists.toString());
+            if(artists != null) {
+                Log.d("ARTIST SEARCH ACTIVITY", artists.toString());
 
-            parcelableArtistsAdapter = new ParcelableArtistArrayAdapter(getApplicationContext(), R.id.artistsListView, artists);
-            artistsListView.setAdapter(parcelableArtistsAdapter);
+                parcelableArtistsAdapter = new ParcelableArtistArrayAdapter(getApplicationContext(), R.id.artistsListView, artists);
+                artistsListView.setAdapter(parcelableArtistsAdapter);
 
-            artistsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d("ArtistList Activity","Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
+                artistsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Log.d("ArtistList Activity", "Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
 
-                    //Start the top tracks with an intent
-                    Intent i = new Intent(getApplicationContext(), TopTracksActivity.class);
-                    i.putExtra("artistId", artists.get(position).artistId);
-                    i.putExtra("artistName", artists.get(position).artistName);
-                    startActivity(i);
+                        //Start the top tracks with an intent
+                        Intent i = new Intent(getApplicationContext(), TopTracksActivity.class);
+                        i.putExtra("artistId", artists.get(position).artistId);
+                        i.putExtra("artistName", artists.get(position).artistName);
+                        startActivity(i);
 
-                }
-            });
+                    }
+                });
 
-            artistsListView.setSelectionFromTop(savedInstanceState.getInt("listViewPosition"), savedInstanceState.getInt("listViewPositioniOffset"));
-
+                artistsListView.setSelectionFromTop(savedInstanceState.getInt("listViewPosition"), savedInstanceState.getInt("listViewPositioniOffset"));
+            }
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        if(artists == null) {
+        //if(artistsListView.getAdapter().getCount() > 0) {
             outState.putParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST, artists);
 
             int position = artistsListView.getFirstVisiblePosition();
@@ -100,7 +101,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
             View v = artistsListView.getChildAt(0);
             int offset = (v == null) ? 0 : (v.getTop() - artistsListView.getPaddingTop());
             outState.putInt("listViewPositionOffset", offset);
-        }
+        //}
         super.onSaveInstanceState(outState);
     }
 

@@ -10,22 +10,16 @@
         android:layout_margin="10dp"
         android:src="@drawable/stock_thumbnail"/>
 
-    <RelativeLayout
+    <TextView
+        android:id="@+id/artistNameText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_toRightOf="@id/coverImage">
-
-        <TextView
-            android:id="@+id/artistNameText"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:singleLine="true"
-            android:text="Artist Name"
-            android:textSize="18sp"
-            android:textColor="#000000"
-            android:gravity="center_vertical"
-            android:layout_centerInParent="true"/>
-
-    </RelativeLayout>
+        android:singleLine="true"
+        android:text="Artist Name"
+        android:layout_toRightOf="@id/coverImage"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:gravity="center_vertical"
+        android:layout_centerInParent="true"/>
 
 </RelativeLayout>
