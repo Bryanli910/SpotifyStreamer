@@ -2,6 +2,8 @@ package com.bli.spotifystreamer;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.support.v7.app.ActionBarActivity;
@@ -41,11 +43,16 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
     public ArtistsPager artistsPager;
     public ArrayAdapter<Artist> artistsAdapter;
     public ParcelableArtistArrayAdapter parcelableArtistsAdapter;
+    public Toast toast;
+
+    private ConnectivityManager cm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist_search);
+
+        cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         searchArtistEditText = (EditText)findViewById(R.id.searchArtistText);
         artistsListView = (ListView)findViewById(R.id.artistsListView);
@@ -56,7 +63,20 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    beginSearch(v);
+
+                    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                    boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
+                    if(isConnected) {
+                        beginSearch(v);
+                    }
+                    else{
+                        if(toast != null){
+                            toast.cancel();
+                        }
+                        toast = Toast.makeText(getApplicationContext(), "Please check to make sure device is connected to the internet.",Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
                     return true;
                 }
                 return false;
@@ -108,7 +128,10 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
     public void beginSearch(View view){
         String searchText = searchArtistEditText.getText().toString();
         if(searchText == "" || searchText.isEmpty() || searchText.equals("")){
-            Toast toast = Toast.makeText(this, "Please enter an artist",Toast.LENGTH_SHORT);
+            if(toast != null){
+                toast.cancel();
+            }
+            toast = Toast.makeText(this, "Please enter an artist",Toast.LENGTH_SHORT);
             toast.show();
         }
         else {
