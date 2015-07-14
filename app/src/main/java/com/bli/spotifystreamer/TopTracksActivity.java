@@ -10,6 +10,7 @@ import android.os.Parcel;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -72,6 +73,7 @@ public class TopTracksActivity extends AppCompatActivity implements TracksAsyncR
 
             GetTopTracksTask getTopTracksTask = new GetTopTracksTask();
             getTopTracksTask.delegate = this;
+            Log.d("TEST", artistInfo.getString("artistId"));
             getTopTracksTask.execute(artistInfo.getString("artistId"));
         }
     }
@@ -131,5 +133,15 @@ public class TopTracksActivity extends AppCompatActivity implements TracksAsyncR
             this.tracks = musicService.getTopTracks(artist[0]);
             return null;
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+    {
+        if ((keyCode == KeyEvent.KEYCODE_BACK))
+        {
+            finish();
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }

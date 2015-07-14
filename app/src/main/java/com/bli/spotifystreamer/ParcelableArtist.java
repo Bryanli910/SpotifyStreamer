@@ -33,7 +33,7 @@ public class ParcelableArtist implements Parcelable{
         bundle.putString(KEY_THUMBNAIL_URL, thumbnailUrl);
         bundle.putString(KEY_ARTIST_ID, artistId);
 
-        //Write the key value pairs to the parcel
+        //Write bundle to parcel
         dest.writeBundle(bundle);
     }
 
@@ -45,7 +45,7 @@ public class ParcelableArtist implements Parcelable{
 
             return new ParcelableArtist(bundle.getString(KEY_ARTIST_NAME),
                     bundle.getString(KEY_THUMBNAIL_URL),
-                    bundle.getString(KEY_ARTIST_NAME));
+                    bundle.getString(KEY_ARTIST_ID));
         }
 
         public ParcelableArtist[] newArray(int size) {

@@ -19,10 +19,6 @@ public class ParcelableTrack implements Parcelable{
 
     public String trackName, artistName, albumName, thumbnailUrl;
 
-    public ParcelableTrack(){
-        super();
-    }
-
     public ParcelableTrack(String trackName, String artistName, String albumName, String thumbnailUrl){
         this.trackName = trackName;
         this.artistName = artistName;
@@ -30,12 +26,6 @@ public class ParcelableTrack implements Parcelable{
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public ParcelableTrack(Parcel in){
-        trackName = in.readString();
-        artistName = in.readString();
-        albumName = in.readString();
-        thumbnailUrl = in.readString();
-    }
     @Override
     public int describeContents() {
         return 0;
@@ -46,10 +36,14 @@ public class ParcelableTrack implements Parcelable{
         //Create a bundle
         Bundle bundle = new Bundle();
 
+        //Insert key value pairs to the bundle
         bundle.putString(KEY_TRACK_NAME, trackName);
         bundle.putString(KEY_ARTIST_NAME, artistName);
         bundle.putString(KEY_ALBUM_NAME, albumName);
         bundle.putString(KEY_THUMBNAIL_URL, thumbnailUrl);
+
+        //Write bundle to parcel
+        dest.writeBundle(bundle);
     }
 
     public static Creator<ParcelableTrack> CREATOR = new Creator<ParcelableTrack>() {

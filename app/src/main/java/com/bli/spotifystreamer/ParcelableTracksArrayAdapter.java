@@ -17,7 +17,7 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class ParcelableTracksArrayAdapter extends ArrayAdapter <ParcelableTrack>{
     private final Context context;
-    private final List<ParcelableTrack> parcelableTracks;
+    private transient List<ParcelableTrack> parcelableTracks;
 
     public ParcelableTracksArrayAdapter(Context context, int resource, List<ParcelableTrack> parcelableTracks) {
         super(context, resource, parcelableTracks);
@@ -42,7 +42,7 @@ public class ParcelableTracksArrayAdapter extends ArrayAdapter <ParcelableTrack>
         ImageView albumImageView = (ImageView) rowView.findViewById(R.id.albumImage);
         String thumbnailUrl = currentTrack.thumbnailUrl;
 
-        if(thumbnailUrl != "" || !(thumbnailUrl.equals(""))){
+        if( !(thumbnailUrl.equals("")) ){
 
             Picasso.with(context).load(thumbnailUrl).into(albumImageView);
             Log.d("Array Adapter: ", thumbnailUrl);

@@ -19,7 +19,7 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 
 public class ParcelableArtistArrayAdapter extends ArrayAdapter<ParcelableArtist>{
     private final Context context;
-    private final List<ParcelableArtist> parcelableArtistList;
+    private transient List<ParcelableArtist> parcelableArtistList;
 
     public ParcelableArtistArrayAdapter(Context context,int resource, List<ParcelableArtist> parcelableArtistList) {
         super(context,resource,parcelableArtistList);
@@ -40,15 +40,12 @@ public class ParcelableArtistArrayAdapter extends ArrayAdapter<ParcelableArtist>
 
         ImageView artistImageView = (ImageView) rowView.findViewById(R.id.coverImage);
 
-        if(!currentArtist.thumbnailUrl.equals("") || currentArtist.thumbnailUrl != "" ){
+        String artistImageUrl = currentArtist.thumbnailUrl;
 
-            String artistImageUrl = currentArtist.thumbnailUrl;
+        if( !(artistImageUrl.equals("")) ){
+
             Picasso.with(context).load(artistImageUrl).into(artistImageView);
             Log.d("Array Adapter: ", artistImageUrl);
-
-        }
-
-        else{
 
         }
 
