@@ -16,14 +16,19 @@ public class ParcelableTrack implements Parcelable{
     private static final String KEY_ARTIST_NAME = "artistName";
     private static final String KEY_ALBUM_NAME = "albumName";
     private static final String KEY_THUMBNAIL_URL = "thumbnailUrl";
+    private static final String KEY_PREVIEW_URL = "previewUrl";
+    private static final String KEY_DURATION_MS = "durationMs";
 
-    public String trackName, artistName, albumName, thumbnailUrl;
+    public String trackName, artistName, albumName, thumbnailUrl, previewUrl;
+    public long durationMs;
 
-    public ParcelableTrack(String trackName, String artistName, String albumName, String thumbnailUrl){
+    public ParcelableTrack(String trackName, String artistName, String albumName, String thumbnailUrl, String previewUrl, long durationMs){
         this.trackName = trackName;
         this.artistName = artistName;
         this.albumName = albumName;
         this.thumbnailUrl = thumbnailUrl;
+        this.previewUrl = previewUrl;
+        this.durationMs = durationMs;
     }
 
     @Override
@@ -41,6 +46,8 @@ public class ParcelableTrack implements Parcelable{
         bundle.putString(KEY_ARTIST_NAME, artistName);
         bundle.putString(KEY_ALBUM_NAME, albumName);
         bundle.putString(KEY_THUMBNAIL_URL, thumbnailUrl);
+        bundle.putString(KEY_PREVIEW_URL, previewUrl);
+        bundle.putLong(KEY_DURATION_MS, durationMs);
 
         //Write bundle to parcel
         dest.writeBundle(bundle);
@@ -54,7 +61,9 @@ public class ParcelableTrack implements Parcelable{
             return new ParcelableTrack(bundle.getString(KEY_TRACK_NAME),
                     bundle.getString(KEY_ARTIST_NAME),
                     bundle.getString(KEY_ALBUM_NAME),
-                    bundle.getString(KEY_THUMBNAIL_URL));
+                    bundle.getString(KEY_THUMBNAIL_URL),
+                    bundle.getString(KEY_PREVIEW_URL),
+                    bundle.getLong(KEY_DURATION_MS));
         }
 
         @Override

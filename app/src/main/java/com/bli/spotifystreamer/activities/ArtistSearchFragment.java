@@ -1,40 +1,50 @@
-package com.bli.spotifystreamer;
+package com.bli.spotifystreamer.activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Parcel;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bli.spotifystreamer.ArtistArrayAdapter;
+import com.bli.spotifystreamer.AsyncResponse;
+import com.bli.spotifystreamer.MusicService;
+import com.bli.spotifystreamer.ParcelableArtist;
+import com.bli.spotifystreamer.ParcelableArtistArrayAdapter;
+import com.bli.spotifystreamer.R;
+
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Artists;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
-import kaaes.spotify.webapi.android.models.Image;
-import kaaes.spotify.webapi.android.models.Pager;
 
-public class ArtistSearchActivity extends AppCompatActivity implements AsyncResponse{
+public class ArtistSearchFragment extends Fragment implements AsyncResponse{
 
+    private Callbacks callbacks;
+
+    public interface Callbacks{
+        void onArtistSelected(String artistId, String artistName);
+    }
+
+    private static final String ARG_ARTIST_ID = "artistID";
+    private static final String ARG_ARTIST_NAME = "artistName";
     private static final String KEY_PARCELABLE_ARTIST_LIST = "artists";
     private EditText searchArtistEditText;
     private ListView artistsListView;
@@ -45,36 +55,50 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
     public ParcelableArtistArrayAdapter parcelableArtistsAdapter;
     public Toast toast;
 
-    private ConnectivityManager cm;
+    private Activity hostActivity;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onAttach(Activity activity){
+        super.onAttach(activity);
+        callbacks = (Callbacks)activity;
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        callbacks = null;
+    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artist_search);
+        hostActivity = getActivity();
+        hostActivity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
 
-        cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+    @Override
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState){
 
-        searchArtistEditText = (EditText)findViewById(R.id.searchArtistText);
-        artistsListView = (ListView)findViewById(R.id.artistsListView);
+        //Inflate the layout for this fragment
+        View v = inflater.inflate(R.layout.activity_artist_search, container, false);
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        searchArtistEditText = (EditText)v.findViewById(R.id.searchArtistText);
+        artistsListView = (ListView)v.findViewById(R.id.artistsListView);
+
+
 
         searchArtistEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
 
-                    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-                    boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-
-                    if(isConnected) {
+                    if(Utility.isNetworkAvailable(getActivity())) {
                         beginSearch(v);
                     }
                     else{
                         if(toast != null){
                             toast.cancel();
                         }
-                        toast = Toast.makeText(getApplicationContext(), "Please check to make sure device is connected to the internet.",Toast.LENGTH_SHORT);
+                        toast = Toast.makeText(hostActivity.getApplicationContext(), "Please check to make sure device is connected to the internet.",Toast.LENGTH_SHORT);
                         toast.show();
                     }
                     return true;
@@ -88,7 +112,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
             if(artists != null) {
                 Log.d("ARTIST SEARCH ACTIVITY", artists.toString());
 
-                parcelableArtistsAdapter = new ParcelableArtistArrayAdapter(getApplicationContext(), R.id.artistsListView, artists);
+                parcelableArtistsAdapter = new ParcelableArtistArrayAdapter(hostActivity.getApplicationContext(), R.id.artistsListView, artists);
                 artistsListView.setAdapter(parcelableArtistsAdapter);
 
                 artistsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -96,31 +120,28 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Log.d("ArtistList Activity", "Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
 
-                        //Start the top tracks with an intent
-                        Intent i = new Intent(getApplicationContext(), TopTracksActivity.class);
-                        i.putExtra("artistId", artists.get(position).artistId);
-                        i.putExtra("artistName", artists.get(position).artistName);
-                        startActivity(i);
-
+                        callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
                     }
                 });
 
                 artistsListView.setSelectionFromTop(savedInstanceState.getInt("listViewPosition"), savedInstanceState.getInt("listViewPositioniOffset"));
             }
         }
+
+        return v;
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(Bundle outState) {
         //if(artistsListView.getAdapter().getCount() > 0) {
-            outState.putParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST, artists);
+        outState.putParcelableArrayList(KEY_PARCELABLE_ARTIST_LIST, artists);
 
-            int position = artistsListView.getFirstVisiblePosition();
-            outState.putInt("listViewPosition", position);
+        int position = artistsListView.getFirstVisiblePosition();
+        outState.putInt("listViewPosition", position);
 
-            View v = artistsListView.getChildAt(0);
-            int offset = (v == null) ? 0 : (v.getTop() - artistsListView.getPaddingTop());
-            outState.putInt("listViewPositionOffset", offset);
+        View v = artistsListView.getChildAt(0);
+        int offset = (v == null) ? 0 : (v.getTop() - artistsListView.getPaddingTop());
+        outState.putInt("listViewPositionOffset", offset);
         //}
         super.onSaveInstanceState(outState);
     }
@@ -131,7 +152,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
             if(toast != null){
                 toast.cancel();
             }
-            toast = Toast.makeText(this, "Please enter an artist",Toast.LENGTH_SHORT);
+            toast = Toast.makeText(hostActivity, "Please enter an artist",Toast.LENGTH_SHORT);
             toast.show();
         }
         else {
@@ -140,7 +161,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
             getArtistsTask.execute(searchText);
 
             // Remove the focus from the edit text and hide the keyboard
-            InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager in = (InputMethodManager) hostActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
             in.hideSoftInputFromWindow(searchArtistEditText.getWindowToken(), 0);
             searchArtistEditText.clearFocus();
             artistsListView.requestFocus();
@@ -151,32 +172,33 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
     @Override
     public void processFinish(final ArtistsPager artistsPager) {
 
-        Log.d("Artist Search", "Begin onPostExecute delegate");
+        Log.d("Artist Search Fragment", "Begin onPostExecute delegate");
         artists = new ArrayList<>();
 
         int artistListSize = artistsPager.artists.items.size();
 
         if(artistListSize > 0 ) {
 
-            artistsAdapter = new ArtistArrayAdapter(getApplicationContext(), R.id.artistsListView, artistsPager);
+            artistsAdapter = new ArtistArrayAdapter(hostActivity.getApplicationContext(), R.id.artistsListView, artistsPager);
             artistsListView.setAdapter(artistsAdapter);
 
             artistsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d("ArtistList Activity","Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
+                    Log.d("ArtistList Activity", "Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
 
                     //Start the top tracks with an intent
-                    Intent i = new Intent(getApplicationContext(), TopTracksActivity.class);
-                    i.putExtra("artistId", artistsPager.artists.items.get(position).id);
-                    i.putExtra("artistName", artistsPager.artists.items.get(position).name);
-                    startActivity(i);
+                    callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+                    /*Intent i = new Intent(hostActivity.getApplicationContext(), TopTracksHostActivity.class);
+                    i.putExtra("artistId", artists.get(position).artistId);
+                    i.putExtra("artistName", artists.get(position).artistName);
+                    startActivity(i);*/
 
                 }
             });
         }
         else{
-            Toast toast = Toast.makeText(this, "Artist not found. Please try another one.",Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(hostActivity, "Artist not found. Please try another one.",Toast.LENGTH_SHORT);
             toast.show();
         }
 
@@ -191,7 +213,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements AsyncResp
         }
     }
 
-    private class GetArtistsTask extends AsyncTask<String, Void, Void>{
+    private class GetArtistsTask extends AsyncTask<String, Void, Void> {
 
         private ArtistsPager artistsPager;
         public AsyncResponse delegate = null;

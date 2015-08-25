@@ -10,7 +10,7 @@ public class ParcelableArtist implements Parcelable{
     private static final String KEY_THUMBNAIL_URL = "thumbnailUrl";
     private static final String KEY_ARTIST_ID = "artistId";
 
-    String artistName, thumbnailUrl, artistId;
+    public String artistName, thumbnailUrl, artistId;
 
     public ParcelableArtist(String artistName, String thumbnailUrl, String artistId){
         this.artistName = artistName;
