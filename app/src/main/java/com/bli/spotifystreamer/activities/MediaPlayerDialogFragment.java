@@ -42,6 +42,7 @@ public class MediaPlayerDialogFragment extends DialogFragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
 
         this.setRetainInstance(true);
+
         Bundle args = getArguments();
         parcelableTrackList = args.getParcelableArrayList("track");
         currentPosition = args.getInt("currentPosition");
@@ -179,7 +180,7 @@ public class MediaPlayerDialogFragment extends DialogFragment{
             public void run() {
                 if (mp.sMediaPlayer.isPlaying()) {
                     currentTimeTxt.setText(Utility.convertToMinutes(mp.sMediaPlayer.getCurrentPosition()));
-                    scrubBar.setProgress(mp.sMediaPlayer.getCurrentPosition()/1000);
+                    scrubBar.setProgress(mp.sMediaPlayer.getCurrentPosition() / 1000);
                 }
                 handler.postDelayed(this, 1000);
             }
@@ -189,8 +190,8 @@ public class MediaPlayerDialogFragment extends DialogFragment{
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Log.d("Progress Change Scrub:", String.valueOf(progress));
-                if(mp.sMediaPlayer.isPlaying() && fromUser){
-                    mp.sMediaPlayer.seekTo(progress*1000);
+                if (mp.sMediaPlayer.isPlaying() && fromUser) {
+                    mp.sMediaPlayer.seekTo(progress * 1000);
                 }
             }
 
@@ -205,4 +206,11 @@ public class MediaPlayerDialogFragment extends DialogFragment{
             }
         });
     }
+
+    public void onDestroyView() {
+        if (getDialog() != null && getRetainInstance())
+            getDialog().setDismissMessage(null);
+        super.onDestroyView();
+    }
+
 }

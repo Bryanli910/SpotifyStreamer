@@ -34,6 +34,7 @@ import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import retrofit.RetrofitError;
 
 public class ArtistSearchFragment extends Fragment implements AsyncResponse{
 
@@ -43,6 +44,7 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
         void onArtistSelected(String artistId, String artistName);
     }
 
+    private static final String TAG = "Artist Search Fragment";
     private static final String ARG_ARTIST_ID = "artistID";
     private static final String ARG_ARTIST_NAME = "artistName";
     private static final String KEY_PARCELABLE_ARTIST_LIST = "artists";
@@ -91,15 +93,10 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
 
-                    if(Utility.isNetworkAvailable(getActivity())) {
+                    if (Utility.isNetworkAvailable(getActivity())) {
                         beginSearch(v);
-                    }
-                    else{
-                        if(toast != null){
-                            toast.cancel();
-                        }
-                        toast = Toast.makeText(hostActivity.getApplicationContext(), "Please check to make sure device is connected to the internet.",Toast.LENGTH_SHORT);
-                        toast.show();
+                    } else {
+                        Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
                     }
                     return true;
                 }
@@ -119,8 +116,12 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Log.d("ArtistList Activity", "Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
-
-                        callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+                        if(Utility.isNetworkAvailable(getActivity())) {
+                            callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+                        }
+                        else{
+                            Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
+                        }
                     }
                 });
 
@@ -188,18 +189,17 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
                     Log.d("ArtistList Activity", "Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
 
                     //Start the top tracks with an intent
-                    callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
-                    /*Intent i = new Intent(hostActivity.getApplicationContext(), TopTracksHostActivity.class);
-                    i.putExtra("artistId", artists.get(position).artistId);
-                    i.putExtra("artistName", artists.get(position).artistName);
-                    startActivity(i);*/
-
+                    if(Utility.isNetworkAvailable(getActivity())) {
+                        callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+                    }
+                    else{
+                        Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
+                    }
                 }
             });
         }
         else{
-            Toast toast = Toast.makeText(hostActivity, "Artist not found. Please try another one.",Toast.LENGTH_SHORT);
-            toast.show();
+            Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
         }
 
         //Save the artists into the parcelableArtist list
@@ -221,10 +221,15 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
         @Override
         protected Void doInBackground(String... artist){
             Log.d("Artist Search", "Begin spotify query");
-            MusicService musicService = new  MusicService();
 
-            this.artistsPager = musicService.getArtists(artist[0]);
-
+            try{
+                MusicService musicService = new  MusicService();
+                this.artistsPager = musicService.getArtists(artist[0]);
+            }
+            catch(RetrofitError e){
+                Log.d(TAG, e.getBody().toString());
+                Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
+            }
             return null;
         }
 

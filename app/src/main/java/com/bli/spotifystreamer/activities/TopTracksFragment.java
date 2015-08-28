@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
+import retrofit.RetrofitError;
 
 public class TopTracksFragment extends Fragment implements TracksAsyncResponse{
 
@@ -104,11 +105,7 @@ public class TopTracksFragment extends Fragment implements TracksAsyncResponse{
                             }
                         }
                         else{
-                            if(toast != null){
-                                toast.cancel();
-                            }
-                            toast = Toast.makeText(hostActivity.getApplicationContext(), "Please check to make sure device is connected to the internet.", Toast.LENGTH_SHORT);
-                            toast.show();
+                            Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
                         }
                     }
                 });
@@ -189,11 +186,7 @@ public class TopTracksFragment extends Fragment implements TracksAsyncResponse{
                         }
                     }
                     else{
-                        if(toast != null){
-                            toast.cancel();
-                        }
-                        toast = Toast.makeText(hostActivity.getApplicationContext(), "Please check to make sure device is connected to the internet.", Toast.LENGTH_SHORT);
-                        toast.show();
+                        Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
                     }
                 }
             });
@@ -212,19 +205,15 @@ public class TopTracksFragment extends Fragment implements TracksAsyncResponse{
 
         @Override
         protected Void doInBackground(String... artist) {
-            MusicService musicService = new MusicService();
-            this.tracks = musicService.getTopTracks(artist[0]);
+            try{
+                MusicService musicService = new MusicService();
+                this.tracks = musicService.getTopTracks(artist[0]);
+            }
+            catch (RetrofitError e){
+                Log.d(TAG, e.getBody().toString());
+                Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
+            }
             return null;
         }
     }
-
-    /*@Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if ((keyCode == KeyEvent.KEYCODE_BACK))
-        {
-            finish();
-        }
-        return super.onKeyDown(keyCode, event);
-    }*/
 }

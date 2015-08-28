@@ -2,6 +2,7 @@ package com.bli.spotifystreamer.activities;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.widget.Toast;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,5 +31,13 @@ public class Utility {
     public static boolean isNetworkAvailable(Context context){
         final ConnectivityManager cm = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE));
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
+    }
+
+    public static void callToast(Context context, Toast toast, String msg){
+        if(toast != null){
+            toast.cancel();
+        }
+        toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+        toast.show();
     }
 }
