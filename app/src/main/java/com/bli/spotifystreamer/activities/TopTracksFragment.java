@@ -1,13 +1,11 @@
 package com.bli.spotifystreamer.activities;
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -98,7 +96,7 @@ public class TopTracksFragment extends Fragment implements TracksAsyncResponse{
                                 FragmentTransaction transaction = fm.beginTransaction();
                                 transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
                                 transaction.hide(getTargetFragment());
-                                transaction.add(R.id.fragment_container, mediaPlayerFragment)
+                                transaction.add(android.R.id.content, mediaPlayerFragment)
                                         .addToBackStack(null).commit();
                             } else {
                                 mediaPlayerFragment.show(fm, "Media Player Fragment");

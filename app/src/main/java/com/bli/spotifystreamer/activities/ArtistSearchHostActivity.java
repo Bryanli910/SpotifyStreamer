@@ -16,7 +16,6 @@ public class ArtistSearchHostActivity extends SingleFragmentActivity implements 
         }
         else{
             Fragment newDetail = TopTracksFragment.newInstance(artistId, artistName);
-
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.detail_fragment_container, newDetail)
                     .commit();

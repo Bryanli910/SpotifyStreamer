@@ -42,13 +42,21 @@ public class MediaPlayerDialogFragment extends DialogFragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
 
         this.setRetainInstance(true);
+        final MediaPlayerManager mp = MediaPlayerManager.getInstance(this);
 
-        Bundle args = getArguments();
-        parcelableTrackList = args.getParcelableArrayList("track");
+        View v = inflater.inflate(R.layout.fragment_media_player, container, false);
+
+        Bundle args;
+        if (savedInstanceState == null) {
+            args = getArguments();
+            parcelableTrackList = args.getParcelableArrayList("track");
+        }
+        else{
+            args = savedInstanceState;
+        }
         currentPosition = args.getInt("currentPosition");
         pTrack = parcelableTrackList.get(currentPosition);
 
-        View v = inflater.inflate(R.layout.fragment_media_player,container,false);
         artistNameTitleTxt = (TextView)v.findViewById(R.id.artistNameTxt);
         albumNameTxt = (TextView)v.findViewById(R.id.albumNameTxt);
         songNameTxt = (TextView)v.findViewById(R.id.songNameTxt);
@@ -58,14 +66,6 @@ public class MediaPlayerDialogFragment extends DialogFragment{
         scrubBar = (SeekBar)v.findViewById(R.id.scrubBar);
 
         setTrackInformation();
-
-        final MediaPlayerManager mp = MediaPlayerManager.getInstance(this);
-        if(savedInstanceState != null){
-            mp.playMusic();
-        }
-        else{
-            mp.nextSong(pTrack.previewUrl);
-        }
 
         final ImageButton playBtn = (ImageButton)v.findViewById(R.id.playCtrlBtn);
         playBtn.setOnClickListener(new View.OnClickListener() {
@@ -95,22 +95,23 @@ public class MediaPlayerDialogFragment extends DialogFragment{
         ImageButton nextBtn = (ImageButton)v.findViewById(R.id.nextCtrlBtn);
         nextBtn.setOnClickListener(new View.OnClickListener() {
             private MediaPlayerManager mp;
+
             @Override
             public void onClick(View v) {
                 //TO DO: Find out a way to implement the next song when passing the value to the next song
-                if(currentPosition+1 >= parcelableTrackList.size()){
+                if (currentPosition + 1 >= parcelableTrackList.size()) {
                     //At end of list go back to the beginning
                     setCurrentPosition(0);
                     setTrackInformation();
                     mp.nextSong(pTrack.previewUrl);
-                }
-                else{
-                    setCurrentPosition(currentPosition+1);
+                } else {
+                    setCurrentPosition(currentPosition + 1);
                     setTrackInformation();
                     mp.nextSong(pTrack.previewUrl);
                 }
             }
-            private View.OnClickListener init(MediaPlayerManager mp){
+
+            private View.OnClickListener init(MediaPlayerManager mp) {
                 this.mp = mp;
                 return this;
             }
@@ -119,27 +120,35 @@ public class MediaPlayerDialogFragment extends DialogFragment{
         ImageButton prevBtn = (ImageButton)v.findViewById(R.id.previousCtrlBtn);
         prevBtn.setOnClickListener(new View.OnClickListener() {
             private MediaPlayerManager mp;
+
             @Override
             public void onClick(View v) {
                 //TO DO: Find out a way to implement the next song when passing the value to the next song
-                if(currentPosition-1 >= 0){
+                if (currentPosition - 1 >= 0) {
                     //At end of list go back to the beginning
-                    setCurrentPosition(currentPosition-1);
+                    setCurrentPosition(currentPosition - 1);
                     setTrackInformation();
                     mp.nextSong(pTrack.previewUrl);
-                }
-                else{
+                } else {
                     setCurrentPosition(parcelableTrackList.size() - 1);
                     setTrackInformation();
                     mp.nextSong(pTrack.previewUrl);
                 }
             }
-            private View.OnClickListener init(MediaPlayerManager mp){
+
+            private View.OnClickListener init(MediaPlayerManager mp) {
                 this.mp = mp;
                 return this;
             }
         }.init(mp));
 
+        if(savedInstanceState != null){
+            mp.playMusic();
+            PreparedComplete();
+        }
+        else{
+            mp.nextSong(pTrack.previewUrl);
+        }
         return v;
     }
     private void nextSong(){
@@ -211,6 +220,11 @@ public class MediaPlayerDialogFragment extends DialogFragment{
         if (getDialog() != null && getRetainInstance())
             getDialog().setDismissMessage(null);
         super.onDestroyView();
+    }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("currentPosition", currentPosition);
     }
 
 }

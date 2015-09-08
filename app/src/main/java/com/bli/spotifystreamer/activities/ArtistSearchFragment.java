@@ -29,11 +29,14 @@ import com.bli.spotifystreamer.MusicService;
 import com.bli.spotifystreamer.ParcelableArtist;
 import com.bli.spotifystreamer.ParcelableArtistArrayAdapter;
 import com.bli.spotifystreamer.R;
+import com.bli.spotifystreamer.TracksAsyncResponse;
+import com.squareup.okhttp.internal.Util;
 
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.RetrofitError;
 
 public class ArtistSearchFragment extends Fragment implements AsyncResponse{
@@ -117,7 +120,9 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Log.d("ArtistList Activity", "Position: " + Integer.toString(position) + " |ID: " + String.valueOf(id));
                         if(Utility.isNetworkAvailable(getActivity())) {
-                            callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+                            GetTopTracksTask getTopTracksTask = new GetTopTracksTask();
+                            getTopTracksTask.position = position;
+                            getTopTracksTask.execute(artists.get(position).artistId);
                         }
                         else{
                             Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
@@ -190,7 +195,9 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
 
                     //Start the top tracks with an intent
                     if(Utility.isNetworkAvailable(getActivity())) {
-                        callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+                        GetTopTracksTask getTopTracksTask = new GetTopTracksTask();
+                        getTopTracksTask.position = position;
+                        getTopTracksTask.execute(artists.get(position).artistId);
                     }
                     else{
                         Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
@@ -235,8 +242,35 @@ public class ArtistSearchFragment extends Fragment implements AsyncResponse{
 
         @Override
         protected void onPostExecute(Void v){
-            Log.d("Artist Search", "Spotify query completed");
-            delegate.processFinish(this.artistsPager);
+            delegate.processFinish(artistsPager);
+        }
+    }
+    private class GetTopTracksTask extends AsyncTask<String, Void, Void> {
+
+        private Tracks tracks;
+        public int position = 0;
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if(tracks.tracks.size() > 0) {
+                callbacks.onArtistSelected(artists.get(position).artistId, artists.get(position).artistName);
+            }
+            else{
+                Utility.callToast(hostActivity.getApplicationContext(), toast, "No tracks found for this artist. Please select a different artist.");
+            }
+        }
+
+        @Override
+        protected Void doInBackground(String... artist) {
+            try{
+                MusicService musicService = new MusicService();
+                this.tracks = musicService.getTopTracks(artist[0]);
+            }
+            catch (RetrofitError e){
+                Log.d(TAG, e.getBody().toString());
+                Utility.callToast(hostActivity.getApplicationContext(), toast, "Please check to make sure device is connected to the internet.");
+            }
+            return null;
         }
     }
 }
