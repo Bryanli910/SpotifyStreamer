@@ -95,7 +95,6 @@ public class TopTracksFragment extends Fragment implements TracksAsyncResponse{
                             if (hostActivity.findViewById(R.id.detail_fragment_container) == null) {
                                 FragmentTransaction transaction = fm.beginTransaction();
                                 transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-                                transaction.hide(getTargetFragment());
                                 transaction.add(android.R.id.content, mediaPlayerFragment)
                                         .addToBackStack(null).commit();
                             } else {
