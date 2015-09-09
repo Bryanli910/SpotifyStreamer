@@ -28,27 +28,37 @@ public class TopTracksArrayAdapter extends ArrayAdapter<Track>{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.top_tracks_list_item, parent, false);
+        ViewHolder holder;
+
+        if(convertView == null){
+            convertView = LayoutInflater.from(context).inflate(R.layout.top_tracks_list_item, parent, false);
+            holder = new ViewHolder();
+            holder.albumName = (TextView)convertView.findViewById(R.id.albumName);
+            holder.trackName = (TextView)convertView.findViewById(R.id.trackName);
+            holder.coverImage = (ImageView)convertView.findViewById(R.id.albumImage);
+            convertView.setTag(holder);
+        }
+        else{
+            holder = (ViewHolder)convertView.getTag();
+        }
 
         Track currentTrack = tracks.tracks.get(position);
-
-        TextView albumTextView = (TextView) rowView.findViewById(R.id.albumName);
-        albumTextView.setText(currentTrack.album.name);
-
-        TextView trackTextView = (TextView) rowView.findViewById(R.id.trackName);
-        trackTextView.setText(currentTrack.name);
-
-        ImageView albumImageView = (ImageView) rowView.findViewById(R.id.albumImage);
+        holder.albumName.setText(currentTrack.album.name);
+        holder.trackName.setText(currentTrack.name);
 
         if(currentTrack.album.images.size() > 0 ){
 
             String albumImageUrl = currentTrack.album.images.get(0).url;
-            Picasso.with(context).load(albumImageUrl).into(albumImageView);
+            Picasso.with(context).load(albumImageUrl).into(holder.coverImage);
             Log.d("Array Adapter: ", albumImageUrl);
 
         }
 
-        return rowView;
+        return convertView;
+    }
+
+    class ViewHolder{
+        TextView albumName, trackName;
+        ImageView coverImage;
     }
 }

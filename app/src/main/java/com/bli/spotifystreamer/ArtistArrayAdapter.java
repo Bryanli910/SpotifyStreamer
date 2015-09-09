@@ -34,28 +34,36 @@ public class ArtistArrayAdapter extends ArrayAdapter<Artist>{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.artist_list_item, parent, false);
+        ViewHolder holder;
 
+        if(convertView == null){
+            convertView = LayoutInflater.from(context).inflate(R.layout.artist_list_item, parent, false);
+            holder = new ViewHolder();
+            holder.artistName = (TextView)convertView.findViewById(R.id.artistNameText);
+            holder.artistImage = (ImageView)convertView.findViewById(R.id.coverImage);
+            convertView.setTag(holder);
+        }
+        else{
+            holder = (ViewHolder)convertView.getTag();
+        }
         Artist currentArtist = artistsPager.artists.items.get(position);
 
-        TextView artistTextView = (TextView) rowView.findViewById(R.id.artistNameText);
-        artistTextView.setText(currentArtist.name);
-
-        ImageView artistImageView = (ImageView) rowView.findViewById(R.id.coverImage);
+        holder.artistName.setText(currentArtist.name);
 
         if(currentArtist.images.size() > 0 ){
 
             String artistImageUrl = currentArtist.images.get(0).url;
-            Picasso.with(context).load(artistImageUrl).into(artistImageView);
+            Picasso.with(context).load(artistImageUrl).into(holder.artistImage);
             Log.d("Array Adapter: ", artistImageUrl);
 
         }
 
-        else{
-
-        }
-
-        return rowView;
+        return convertView;
     }
+
+    class ViewHolder {
+        TextView artistName;
+        ImageView artistImage;
+    }
+
 }

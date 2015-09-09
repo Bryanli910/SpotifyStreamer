@@ -13,8 +13,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.Track;
-
 public class ParcelableTracksArrayAdapter extends ArrayAdapter <ParcelableTrack>{
     private final Context context;
     private transient List<ParcelableTrack> parcelableTracks;
@@ -28,27 +26,32 @@ public class ParcelableTracksArrayAdapter extends ArrayAdapter <ParcelableTrack>
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.top_tracks_list_item, parent, false);
+        ViewHolder holder;
+        if(convertView == null){
+            convertView = LayoutInflater.from(context).inflate(R.layout.top_tracks_list_item, parent, false);
+            holder = new ViewHolder();
+            holder.albumName = (TextView)convertView.findViewById(R.id.albumName);
+            holder.trackName = (TextView)convertView.findViewById(R.id.trackName);
+            holder.coverImage = (ImageView)convertView.findViewById(R.id.albumImage);
+            convertView.setTag(holder);
+        }
+        else{
+            holder = (ViewHolder)convertView.getTag();
+        }
 
         ParcelableTrack currentTrack = parcelableTracks.get(position);
-
-        TextView albumTextView = (TextView) rowView.findViewById(R.id.albumName);
-        albumTextView.setText(currentTrack.albumName);
-
-        TextView trackTextView = (TextView) rowView.findViewById(R.id.trackName);
-        trackTextView.setText(currentTrack.trackName);
-
-        ImageView albumImageView = (ImageView) rowView.findViewById(R.id.albumImage);
+        holder.albumName.setText(currentTrack.albumName);
+        holder.trackName.setText(currentTrack.trackName);
         String thumbnailUrl = currentTrack.thumbnailUrl;
 
         if( !(thumbnailUrl.equals("")) ){
-
-            Picasso.with(context).load(thumbnailUrl).into(albumImageView);
+            Picasso.with(context).load(thumbnailUrl).into(holder.coverImage);
             Log.d("Array Adapter: ", thumbnailUrl);
-
         }
-
-        return rowView;
+        return convertView;
+    }
+    class ViewHolder{
+        TextView albumName, trackName;
+        ImageView coverImage;
     }
 }
